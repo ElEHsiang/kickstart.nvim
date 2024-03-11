@@ -156,6 +156,7 @@ require('lazy').setup({
   -- colorscheme
   {
     'folke/tokyonight.nvim',
+    enabled = false,
     priority = 1000,
     -- config = function()
     --  vim.cmd.colorscheme 'tokyonight-night'
@@ -165,12 +166,32 @@ require('lazy').setup({
   {
     -- Theme inspired by Atom
     'navarasu/onedark.nvim',
+    enabled = false,
     priority = 1000,
-    config = function()
-      require('onedark').setup({
-        style = 'cool'
-      })
-      vim.cmd.colorscheme 'onedark'
+    -- config = function()
+    --   require('onedark').setup({
+    --     style = 'cool'
+    --   })
+    --   vim.cmd.colorscheme 'onedark'
+    -- end,
+  },
+
+  {
+    'shaunsingh/solarized.nvim',
+    priority = 1000,
+    -- config = function ()
+    --   vim.o.background = 'light'
+    --   vim.cmd.colorscheme 'solarized'
+    -- end,
+  },
+
+  {
+    'rebelot/kanagawa.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function ()
+     vim.o.background = ''
+      vim.cmd.colorscheme 'kanagawa-wave'
     end,
   },
 
@@ -181,7 +202,7 @@ require('lazy').setup({
     opts = {
       options = {
         icons_enabled = false,
-        theme = 'onedark',
+        -- theme = 'solarized',
         component_separators = '|',
         section_separators = '',
       },
@@ -194,7 +215,14 @@ require('lazy').setup({
     -- Enable `lukas-reineke/indent-blankline.nvim`
     -- See `:help ibl`
     main = 'ibl',
-    opts = {},
+    opts = {
+      indent = {
+        char = ' ',
+      },
+      scope = {
+        char = '▏'
+      }
+    },
   },
 
   -- "gc" to comment visual regions/lines
@@ -299,6 +327,9 @@ vim.o.completeopt = 'menuone,noselect'
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
+
+-- Tab
+vim.opt.expandtab = true
 
 -- [[ Basic Keymaps ]]
 
@@ -405,13 +436,21 @@ vim.keymap.set('n', '<leader>w<down>', ':wincmd j<cr>', { desc = '[W]indow Down'
 vim.keymap.set('n', '<leader>w<up>', ':wincmd k<cr>', { desc = '[W]indow Up' })
 vim.keymap.set('n', '<leader>w<right>', ':wincmd l<cr>', { desc = '[W]indow Right' })
 
+vim.keymap.set('n', '<leader>n', ':Neotree toggle<cr>', { desc = 'Toggle [N]eotree'})
+
+-- quit
+vim.api.nvim_create_user_command('WQ', 'wq', {})
+vim.api.nvim_create_user_command('Wq', 'wq', {})
+vim.api.nvim_create_user_command('W', 'w', {})
+vim.api.nvim_create_user_command('Q', 'q', {})
+
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'cmake', 'llvm'},
+    ensure_installed = { 'c', 'cpp', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'cmake', 'llvm'},
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
@@ -445,12 +484,12 @@ vim.defer_fn(function()
         enable = true,
         set_jumps = true, -- whether to set jumps in the jumplist
         goto_next_start = {
-          [']m'] = '@function.outer',
-          [']]'] = '@class.outer',
-        },
-        goto_next_end = {
           [']M'] = '@function.outer',
           [']['] = '@class.outer',
+        },
+        goto_next_end = {
+          [']m'] = '@function.outer',
+          [']]'] = '@class.outer',
         },
         goto_previous_start = {
           ['[m'] = '@function.outer',
@@ -624,6 +663,13 @@ cmp.setup {
         cmp.select_prev_item()
       elseif luasnip.locally_jumpable(-1) then
         luasnip.jump(-1)
+      else
+        fallback()
+      end
+    end, { 'i', 's' }),
+    ['<C-j>'] = cmp.mapping(function(fallback)
+      if luasnip.expand_or_locally_jumpable() then
+        luasnip.expand_or_jump()
       else
         fallback()
       end
