@@ -191,6 +191,13 @@ vim.keymap.set('n', '<leader>w<down>', ':wincmd j<cr>', { desc = '[W]indow Down'
 vim.keymap.set('n', '<leader>w<up>', ':wincmd k<cr>', { desc = '[W]indow Up' })
 vim.keymap.set('n', '<leader>w<right>', ':wincmd l<cr>', { desc = '[W]indow Right' })
 
+-- User commands
+vim.api.nvim_create_user_command('WQ', 'wq', {})
+vim.api.nvim_create_user_command('Wq', 'wq', {})
+vim.api.nvim_create_user_command('W', 'w', {})
+vim.api.nvim_create_user_command('Q', 'q', {})
+
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -616,20 +623,59 @@ require('lazy').setup({
     'stevearc/conform.nvim',
     opts = {
       notify_on_error = false,
-      format_on_save = {
-        timeout_ms = 500,
-        lsp_fallback = true,
-      },
+      -- format_on_save = {
+      --   timeout_ms = 500,
+      --   lsp_fallback = true,
+      -- },
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        -- python = { 'autopep8' },
+        -- rust = { 'rustfmt' },
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },
       },
     },
+
+    init = function()
+      vim.g.disable_autoformat = true
+    end,
+
+    config = function()
+      require('conform').setup {
+        format_on_save = function(bufnr)
+          -- Disable with a global variable
+          if vim.g.disable_autoformat then
+            return
+          end
+          return { timeout_ms = 500, lsp_fallback = true }
+        end,
+      }
+      vim.api.nvim_create_user_command('Format', function(args)
+        local range = nil
+        if args.count ~= -1 then
+          local end_line = vim.api.nvim_buf_get_lines(0, args.line2 - 1, args.line2, true)[1]
+          range = {
+            start = { args.line1, 0 },
+            ['end'] = { args.line2, end_line:len() },
+          }
+        end
+        require('conform').format { async = true, lsp_fallback = true, range = range }
+      end, { range = true })
+
+      vim.api.nvim_create_user_command('FormatDisable', function()
+        vim.g.disable_autoformat = true
+      end, {
+        desc = 'Disable autoformat-on-save',
+      })
+      vim.api.nvim_create_user_command('FormatEnable', function()
+        vim.g.disable_autoformat = false
+      end, {
+        desc = 'Re-enable autoformat-on-save',
+      })
+    end,
   },
 
   { -- Autocompletion
