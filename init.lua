@@ -824,6 +824,16 @@ require('lazy').setup({
       vim.cmd.hi 'Comment gui=none'
     end,
   },
+  {
+    'EdenEast/nightfox.nvim',
+    priority = 1000,
+    init = function ()
+      -- vim.cmd.colorscheme 'dayfox'
+
+      -- You can configure highlights by doing something like
+      -- vim.cmd.hi 'Comment gui=none'
+    end
+  },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
